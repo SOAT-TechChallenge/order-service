@@ -1,0 +1,38 @@
+version: "3.8"
+
+services:
+  db:
+    image: mongo:6.0
+    restart: always
+    container_name: mongodb-order-service
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGO_DATABASE}
+    volumes:
+      - mongo_data:/data/db
+    env_file:
+      - .env
+
+  app:
+    build: .
+    container_name: techchallenge-app
+    ports:
+      - "8081:8080"
+      - "5006:5005" # <- porta de debug
+    depends_on:
+      - db
+    environment:
+      SPRING_DATA_MONGODB_URI: "mongodb://db:27017/${MONGO_DATABASE}"
+      SPRING_DATA_MONGODB_USERNAME: ${MONGO_USERNAME}
+      SPRING_DATA_MONGODB_PASSWORD: ${MONGO_PASSWORD}
+      EMAIL_USER: ${EMAIL_USER}
+      EMAIL_PASS: ${EMAIL_PASS}
+      EMAIL_FROM: ${EMAIL_FROM}
+    env_file:
+      - .env
+
+volumes:
+  mongo_data:
