@@ -1,6 +1,5 @@
 package com.fiap.orderService._webApi.data.persistence.repositorys;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -9,6 +8,7 @@ import org.springframework.stereotype.Component;
 import com.fiap.orderService._webApi.data.persistence.entities.OrderDocument;
 import com.fiap.orderService._webApi.mappers.OrderMapper;
 import com.fiap.orderService.core.application.dto.OrderDTO;
+import com.fiap.orderService.core.application.dto.OrderWithStatusAndWaitMinutesProjection;
 import com.fiap.orderService.core.domain.exceptions.EntityNotFoundException;
 import com.fiap.orderService.core.interfaces.OrderDataSource;
 
@@ -45,14 +45,7 @@ public class OrderDataSourceImpl implements OrderDataSource {
     }
 
     @Override
-    public List<OrderDTO> listByPeriod(LocalDateTime initialDt, LocalDateTime finalDt) {
-        return OrderMapper.toDTO(repository.findAllByDateBetween(initialDt, finalDt));
-    }
-
-    @Override
-    public List<OrderDTO> listTodayOrders(List<String> statusList,
-            LocalDateTime initialDt,
-            LocalDateTime finalDt) {
-        return OrderMapper.toDTO(repository.findTodayOrdersByStatusAndDate(statusList, initialDt, finalDt));
+    public List<OrderWithStatusAndWaitMinutesProjection> listTodayOrders(List<String> statusList, int finalizedMinutes) {
+        return repository.findTodayOrders(statusList, finalizedMinutes);
     }
 }

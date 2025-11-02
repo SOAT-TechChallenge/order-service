@@ -33,11 +33,14 @@ public class CreateOrderUseCase {
     public Order execute(CreateOrderInputDTO dto) {
         List<OrderItem> items = processOrderItems(dto.items());
 
+        UUID id = UUID.randomUUID();
+        
         Order order = Order.build(
-                null,
+                id,
                 items,
                 createInitialStatusHistory(),
                 dto.customerId(),
+                dto.customerEmail(),
                 LocalDateTime.now(),
                 null
         );

@@ -7,15 +7,12 @@ import com.fiap.orderService.core.domain.enums.Category;
 
 public class Product {
 
-    private UUID id;
+    private final UUID id;
+    private final String name;
+    private final BigDecimal price;
+    private final Category category;
 
-    private String name;
-
-    private BigDecimal price;
-
-    private Category category;
-
-    public Product(UUID id, String name, BigDecimal price, Category category) {
+    private Product(UUID id, String name, BigDecimal price, Category category) {
         this.id = id;
         this.name = name;
         this.price = price;
@@ -26,32 +23,16 @@ public class Product {
         return this.id;
     }
 
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
     public String getName() {
         return this.name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public BigDecimal getPrice() {
         return this.price;
     }
 
-    public void setPrice(BigDecimal price) {
-        this.price = price;
-    }
-
     public Category getCategory() {
         return this.category;
-    }
-
-    public void setCategory(Category category) {
-        this.category = category;
     }
 
     public static Product build(UUID id, String name, BigDecimal price, Category category) {

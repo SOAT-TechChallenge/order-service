@@ -1,11 +1,11 @@
 package com.fiap.orderService.core.gateways.order;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
 import com.fiap.orderService._webApi.mappers.OrderMapper;
 import com.fiap.orderService.core.application.dto.OrderDTO;
+import com.fiap.orderService.core.application.dto.OrderWithStatusAndWaitMinutesDTO;
 import com.fiap.orderService.core.domain.entities.Order;
 import com.fiap.orderService.core.interfaces.OrderDataSource;
 
@@ -48,19 +48,8 @@ public class OrderGatewayImpl implements OrderGateway {
     }
 
     @Override
-    public List<Order> listByClientId(UUID clientId) {
-        return OrderMapper.toDomain(dataSource.listByClientId(clientId));
-    }
-
-    @Override
-    public List<Order> listByPeriod(LocalDateTime initialDt, LocalDateTime finalDt) {
-        return OrderMapper.toDomain(dataSource.listByPeriod(initialDt, finalDt));
-
-    }
-
-    @Override
-    public List<Order> listTodayOrders(List<String> statusList, LocalDateTime initialDt, LocalDateTime finalDt) {
-        return OrderMapper.toDomain(dataSource.listTodayOrders(statusList, initialDt, finalDt));
+    public List<OrderWithStatusAndWaitMinutesDTO> listTodayOrders(List<String> statusList, int finalizedMinutes) {
+        return OrderMapper.toDtoListFromProjection(dataSource.listTodayOrders(statusList, finalizedMinutes));
     }
 
 }

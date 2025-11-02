@@ -16,16 +16,18 @@ public class Order {
     private final UUID id;
     private final List<OrderItem> items;
     private final UUID customerId;
+    private final String customerEmail;
     private final LocalDateTime date;
     private final List<OrderStatusHistory> statusHistory;
     private String paymentId;
 
-    private Order(UUID id, List<OrderItem> items, List<OrderStatusHistory> statusHistory, UUID customerId, LocalDateTime date, String paymentId) {
+    private Order(UUID id, List<OrderItem> items, UUID customerId, String customerEmail, LocalDateTime date, List<OrderStatusHistory> statusHistory, String paymentId) {
         this.id = id;
         this.items = items;
-        this.statusHistory = statusHistory;
         this.customerId = customerId;
+        this.customerEmail = customerEmail;
         this.date = date;
+        this.statusHistory = statusHistory;
         this.paymentId = paymentId;
     }
 
@@ -35,6 +37,10 @@ public class Order {
 
     public UUID getCustomerId() {
         return this.customerId;
+    }
+
+    public String getCustomerEmail() {
+        return this.customerEmail;
     }
 
     public LocalDateTime getDate() {
@@ -111,7 +117,7 @@ public class Order {
     }
 
     public void moveStatusToReceived(UUID attendantId) {
-        validateTransition(OrderStatus.PAGO);
+        // validateTransition(OrderStatus.PAGO);
         addStatus(OrderStatus.RECEBIDO, attendantId);
     }
 
@@ -156,12 +162,12 @@ public class Order {
         this.statusHistory.add(OrderStatusHistory.build(attendantId, newStatus, LocalDateTime.now()));
     }
 
-    public static Order build(UUID id, List<OrderItem> items, List<OrderStatusHistory> statusHistory, UUID customerId, LocalDateTime date, String paymentId) {
-        validate(items, statusHistory, customerId, date);
-        return new Order(id, new ArrayList<>(items), new ArrayList<>(statusHistory), customerId, date, paymentId);
+    public static Order build(UUID id, List<OrderItem> items, List<OrderStatusHistory> statusHistory, UUID customerId, String customerEmail, LocalDateTime date, String paymentId) {
+        validate(items, statusHistory, customerId, customerEmail, date);
+        return new Order(id, new ArrayList<>(items), customerId, customerEmail, date, new ArrayList<>(statusHistory), paymentId);
     }
 
-    private static void validate(List<OrderItem> items, List<OrderStatusHistory> statusHistory,  UUID customerId, LocalDateTime date) {
+    private static void validate(List<OrderItem> items, List<OrderStatusHistory> statusHistory, UUID customerId, String customerEmail, LocalDateTime date) {
         if (items == null || items.isEmpty()) {
             throw new IllegalArgumentException("Os itens do pedido precisam ser preenchidos");
         }
@@ -170,6 +176,9 @@ public class Order {
         }
         if (customerId == null) {
             throw new IllegalArgumentException("O cliente do pedido precisa ser preenchido");
+        }
+        if (customerEmail == null) {
+            throw new IllegalArgumentException("O email do cliente do pedido precisa ser preenchido");
         }
         if (date == null) {
             throw new IllegalArgumentException("A data do pedido precisa ser preenchida");

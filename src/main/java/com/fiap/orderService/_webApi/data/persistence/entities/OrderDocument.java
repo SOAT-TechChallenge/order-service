@@ -16,6 +16,8 @@ public class OrderDocument {
 
     private UUID customerId;
 
+    private String customerEmail;
+
     private String currentStatus;
 
     private LocalDateTime lastUpdateDate;
@@ -33,9 +35,11 @@ public class OrderDocument {
     public OrderDocument() {
     }
 
-    public OrderDocument(UUID id, UUID customerId, String currentStatus, LocalDateTime lastUpdateDate, List<OrderItemDocument> items, List<OrderStatusDocument> statusHistory, BigDecimal price, LocalDateTime date, String paymentId) {
+
+    public OrderDocument(UUID id, UUID customerId, String customerEmail, String currentStatus, LocalDateTime lastUpdateDate, List<OrderItemDocument> items, List<OrderStatusDocument> statusHistory, BigDecimal price, LocalDateTime date, String paymentId) {
         this.id = id;
         this.customerId = customerId;
+        this.customerEmail = customerEmail;
         this.currentStatus = currentStatus;
         this.lastUpdateDate = lastUpdateDate;
         this.items = items;
@@ -44,6 +48,7 @@ public class OrderDocument {
         this.date = date;
         this.paymentId = paymentId;
     }
+    
 
     public UUID getId() {
         return this.id;
@@ -60,6 +65,16 @@ public class OrderDocument {
     public void setCustomerId(UUID customerId) {
         this.customerId = customerId;
     }
+
+
+    public String getCustomerEmail() {
+        return this.customerEmail;
+    }
+
+    public void setCustomerEmail(String customerEmail) {
+        this.customerEmail = customerEmail;
+    }
+
 
     public String getCurrentStatus() {
         return this.currentStatus;

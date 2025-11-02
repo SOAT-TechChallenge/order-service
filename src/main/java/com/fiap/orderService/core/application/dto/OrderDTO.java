@@ -13,6 +13,7 @@ public record OrderDTO(
         List<OrderItemDTO> items,
         List<OrderStatusHistoryDTO> statusHistory,
         UUID customerId,
+        String customerEmail,
         BigDecimal price,
         LocalDateTime date,
         String paymentId

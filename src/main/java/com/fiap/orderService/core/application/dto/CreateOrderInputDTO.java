@@ -11,7 +11,9 @@ public record CreateOrderInputDTO(
         @NotNull
         List<CreateOrderItemInputDTO> items,
         @NotNull
-        UUID customerId
+        UUID customerId,
+        @NotNull
+        String customerEmail
         ) {
 
 }

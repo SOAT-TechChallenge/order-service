@@ -18,16 +18,13 @@ services:
 
   app:
     build: .
-    container_name: techchallenge-app
+    container_name: techchallenge-order-app
     ports:
       - "8081:8080"
       - "5006:5005" # <- porta de debug
     depends_on:
       - db
     environment:
-      SPRING_DATA_MONGODB_URI: "mongodb://db:27017/${MONGO_DATABASE}"
-      SPRING_DATA_MONGODB_USERNAME: ${MONGO_USERNAME}
-      SPRING_DATA_MONGODB_PASSWORD: ${MONGO_PASSWORD}
       EMAIL_USER: ${EMAIL_USER}
       EMAIL_PASS: ${EMAIL_PASS}
       EMAIL_FROM: ${EMAIL_FROM}

@@ -12,7 +12,9 @@ public record CreateOrderDTO(
         @NotNull
         List<CreateOrderItemDTO> items,
         @NotNull
-        UUID customerId
+        UUID customerId,
+        @NotNull
+        String customerEmail
         ) {
 
 }

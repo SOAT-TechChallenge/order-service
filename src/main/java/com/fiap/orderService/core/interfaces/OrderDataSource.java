@@ -1,10 +1,10 @@
 package com.fiap.orderService.core.interfaces;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
 import com.fiap.orderService.core.application.dto.OrderDTO;
+import com.fiap.orderService.core.application.dto.OrderWithStatusAndWaitMinutesProjection;
 
 public interface OrderDataSource {
 
@@ -16,7 +16,5 @@ public interface OrderDataSource {
 
     List<OrderDTO> listByClientId(UUID clientId);
 
-    List<OrderDTO> listByPeriod(LocalDateTime initialDt, LocalDateTime finalDt);
-
-    List<OrderDTO> listTodayOrders(List<String> statusList, LocalDateTime initialDt, LocalDateTime finalDt);
+    List<OrderWithStatusAndWaitMinutesProjection> listTodayOrders(List<String> statusList, int finalizedMinutes);
 }

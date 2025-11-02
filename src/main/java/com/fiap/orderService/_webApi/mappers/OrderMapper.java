@@ -1,5 +1,6 @@
 package com.fiap.orderService._webApi.mappers;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,6 +19,8 @@ import com.fiap.orderService.core.application.dto.CreateOrderItemInputDTO;
 import com.fiap.orderService.core.application.dto.OrderDTO;
 import com.fiap.orderService.core.application.dto.OrderItemDTO;
 import com.fiap.orderService.core.application.dto.OrderStatusHistoryDTO;
+import com.fiap.orderService.core.application.dto.OrderWithStatusAndWaitMinutesDTO;
+import com.fiap.orderService.core.application.dto.OrderWithStatusAndWaitMinutesProjection;
 import com.fiap.orderService.core.domain.entities.Order;
 import com.fiap.orderService.core.domain.entities.OrderItem;
 import com.fiap.orderService.core.domain.entities.OrderStatusHistory;
@@ -33,6 +36,7 @@ public class OrderMapper {
 
         return CreateOrderInputDTO.builder()
                 .customerId(requestDTO.customerId())
+                .customerEmail(requestDTO.customerEmail())
                 .items(items)
                 .build();
     }
@@ -44,7 +48,7 @@ public class OrderMapper {
                 .build();
     }
 
-     public static Order toDomain(OrderDTO dto) {
+    public static Order toDomain(OrderDTO dto) {
         if (dto == null) {
             return null;
         }
@@ -54,6 +58,7 @@ public class OrderMapper {
                 toItemDomainList(dto.items()),
                 toStatusHistoryDomainList(dto.statusHistory()),
                 dto.customerId(),
+                dto.customerEmail(),
                 dto.date(),
                 dto.paymentId());
     }
@@ -71,6 +76,7 @@ public class OrderMapper {
                 .items(itemDTOs)
                 .statusHistory(statusDTOs)
                 .customerId(order.getCustomerId())
+                .customerEmail(order.getCustomerEmail())
                 .price(order.getPrice())
                 .date(order.getDate())
                 .paymentId(order.getPaymentId())
@@ -90,6 +96,7 @@ public class OrderMapper {
                 .items(items)
                 .statusHistory(statusHistory)
                 .customerId(entity.getCustomerId())
+                .customerEmail(entity.getCustomerEmail())
                 .price(entity.getPrice())
                 .date(entity.getDate())
                 .paymentId(entity.getPaymentId())
@@ -104,11 +111,20 @@ public class OrderMapper {
         List<OrderItemDocument> items = toItemDocumentList(dto.items());
         List<OrderStatusDocument> statusHistory = toStatusDocumentList(dto.statusHistory());
 
+        String currentStatus = null;
+        LocalDateTime lastUpdateDt = null;
+
+        if (!statusHistory.isEmpty()) {
+            currentStatus = statusHistory.get(statusHistory.size() - 1).getStatus();
+            lastUpdateDt = statusHistory.get(statusHistory.size() - 1).getDate();
+        }
+
         OrderDocument entity = new OrderDocument(
                 dto.id(),
                 dto.customerId(),
-                null,
-                null,
+                dto.customerEmail(),
+                currentStatus,
+                lastUpdateDt,
                 items,
                 statusHistory,
                 dto.price(),
@@ -138,6 +154,21 @@ public class OrderMapper {
 
     public static List<OrderDTO> toDTO(List<OrderDocument> orders) {
         return orders.stream().map(OrderMapper::toDTO).collect(Collectors.toList());
+    }
+
+    public static List<OrderWithStatusAndWaitMinutesDTO> toDtoListFromProjection(List<OrderWithStatusAndWaitMinutesProjection> ordersProjectionList) {
+        return ordersProjectionList.stream().map(OrderMapper::toDtoFromProjection).collect(Collectors.toList());
+    }
+
+    private static OrderWithStatusAndWaitMinutesDTO toDtoFromProjection(OrderWithStatusAndWaitMinutesProjection projection) {
+        return OrderWithStatusAndWaitMinutesDTO.builder()
+                .orderId(projection.getOrderId())
+                .status(projection.getStatus())
+                .statusDt(projection.getStatusDt())
+                .customerId(projection.getCustomerId())
+                .orderDt(projection.getOrderDt())
+                .waitTimeMinutes(projection.getWaitTimeMinutes())
+                .build();
     }
 
     private static List<OrderStatusDocument> toStatusDocumentList(List<OrderStatusHistoryDTO> statusHistory) {
