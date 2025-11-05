@@ -28,7 +28,7 @@ data "aws_subnets" "public" {
 
   filter {
     name   = "tag:Name"
-    values = ["techchallenge-vpc-public-*"]
+    values = ["techchallenge-vpc-Public-A", "techchallenge-vpc-Public-B"]
   }
 }
 
@@ -40,7 +40,7 @@ data "aws_subnets" "private" {
 
   filter {
     name   = "tag:Name"
-    values = ["techchallenge-vpc-private-*"]
+    values = ["techchallenge-vpc-Private-A", "techchallenge-vpc-Private-B"]
   }
 }
 
@@ -91,15 +91,15 @@ resource "aws_ecs_task_definition" "mongo_task" {
       # Variáveis para configurar o usuário e senha do MongoDB
       {
         name  = "MONGO_INITDB_ROOT_USERNAME"
-        value = "order_user"
+        value = "root"
       },
       {
         name  = "MONGO_INITDB_ROOT_PASSWORD"
-        value = "Order123!"
+        value = "123456"
       },
       {
         name  = "MONGO_INITDB_DATABASE"
-        value = "order_db"
+        value = "techchallenge_order_service"
       }
     ]
   }])
@@ -108,6 +108,8 @@ resource "aws_ecs_task_definition" "mongo_task" {
     Name = "mongodb-task"
   }
 }
+
+
 
 # ECS Service para o MongoDB
 resource "aws_ecs_service" "mongo_service" {
@@ -119,9 +121,9 @@ resource "aws_ecs_service" "mongo_service" {
 
   # CRÍTICO: Rodar o MongoDB na sub-rede PRIVADA
   network_configuration {
-    security_groups    = [aws_security_group.mongo_sg.id]
-    subnets            = data.aws_subnets.private.ids
-    assign_public_ip   = false
+    security_groups  = [aws_security_group.mongo_sg.id]
+    subnets          = data.aws_subnets.private.ids
+    assign_public_ip = false
   }
 
   tags = {
@@ -265,7 +267,7 @@ resource "aws_ecs_task_definition" "order_task" {
       },
       {
         name  = "SPRING_DATA_MONGODB_URI"
-        value = "mongodb://order_user:Order123!@mongodb-service:27017/order_db?retryWrites=true&w=majority"
+        value = "mongodb://root:123456@10.0.150.170:27017/techchallenge_order_service?retryWrites=true&w=majority&authSource=admin"
       },
       {
         name  = "SPRING_JPA_HIBERNATE_DDL_AUTO"
@@ -290,6 +292,8 @@ resource "aws_ecs_service" "order_service" {
   task_definition = aws_ecs_task_definition.order_task.arn
   desired_count   = 1
   launch_type     = "FARGATE"
+
+  force_new_deployment = true
 
   network_configuration {
     security_groups  = [aws_security_group.ecs_sg.id]
