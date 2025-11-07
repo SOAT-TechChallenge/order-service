@@ -52,10 +52,10 @@ public class ProductDataSourceImpl implements ProductDataSource {
             return Objects.requireNonNull(product, "Produto não encontrado.");
 
         } catch (HttpClientErrorException.NotFound e) {
-            throw new EntityNotFoundException("Produto com ID " + id + " não encontrado.");
+            throw new EntityNotFoundException("Produto com ID " + id + " não encontrado. " + e.getMessage());
 
         } catch (Exception e) {
-            throw new RuntimeException("Falha na comunicação com o Serviço de Registro", e);
+            throw new RuntimeException("Falha na comunicação com o Serviço de Registro: " + e.getMessage(), e);
         }
     }
 }
