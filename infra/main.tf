@@ -44,97 +44,8 @@ data "aws_subnets" "private" {
   }
 }
 
-#Security Group para o Contêiner MongoDB
-resource "aws_security_group" "mongo_sg" {
-  name        = "order-mongo-sg"
-  description = "Security group for MongoDB Container"
-  vpc_id      = data.aws_vpc.existing.id
-
-  ingress {
-    from_port       = 27017
-    to_port         = 27017
-    protocol        = "tcp"
-    security_groups = [aws_security_group.ecs_sg.id]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "order-mongo-sg"
-  }
-}
-
-# ECS Task Definition para o MongoDB
-resource "aws_ecs_task_definition" "mongo_task" {
-  family                   = "mongodb-service"
-  network_mode             = "awsvpc"
-  requires_compatibilities = ["FARGATE"]
-  cpu                      = 256
-  memory                   = 512 # O MongoDB precisa de um pouco de memória
-
-  container_definitions = jsonencode([{
-    name  = "mongodb"
-    image = "mongo:latest" # Imagem oficial do MongoDB
-    portMappings = [{
-      containerPort = 27017
-      hostPort      = 27017
-      protocol      = "tcp"
-    }]
-    essential = true
-
-    environment = [
-      # Variáveis para configurar o usuário e senha do MongoDB
-      {
-        name  = "MONGO_INITDB_ROOT_USERNAME"
-        value = "root"
-      },
-      {
-        name  = "MONGO_INITDB_ROOT_PASSWORD"
-        value = "123456"
-      },
-      {
-        name  = "MONGO_INITDB_DATABASE"
-        value = "techchallenge_order_service"
-      }
-    ]
-  }])
-
-  tags = {
-    Name = "mongodb-task"
-  }
-}
-
-
-
-# ECS Service para o MongoDB
-resource "aws_ecs_service" "mongo_service" {
-  name            = "mongodb-service"
-  cluster         = aws_ecs_cluster.order_cluster.id
-  task_definition = aws_ecs_task_definition.mongo_task.arn
-  desired_count   = 1
-  launch_type     = "FARGATE"
-
-  # CRÍTICO: Rodar o MongoDB na sub-rede PRIVADA
-  network_configuration {
-    security_groups  = [aws_security_group.mongo_sg.id]
-    subnets          = data.aws_subnets.private.ids
-    assign_public_ip = false
-  }
-
-  tags = {
-    Name = "mongodb-service"
-  }
-}
-
-# CloudWatch Log Group para o MongoDB
-resource "aws_cloudwatch_log_group" "mongo_logs" {
-  name              = "/ecs/mongodb-service"
-  retention_in_days = 7
+data "aws_iam_role" "existing_ecs_execution_role" {
+  name = "LabRole"
 }
 
 # Security Group para o ALB
@@ -246,8 +157,10 @@ resource "aws_ecs_task_definition" "order_task" {
   family                   = "order-service"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = 256
-  memory                   = 512
+  cpu                      = 512
+  memory                   = 1024
+
+  execution_role_arn = data.aws_iam_role.existing_ecs_execution_role.arn
 
   container_definitions = jsonencode([{
     name  = "order-service"
@@ -257,7 +170,6 @@ resource "aws_ecs_task_definition" "order_task" {
       hostPort      = 8080
       protocol      = "tcp"
     }]
-
     essential = true
 
     environment = [
@@ -267,18 +179,46 @@ resource "aws_ecs_task_definition" "order_task" {
       },
       {
         name  = "SPRING_DATA_MONGODB_URI"
-        value = "mongodb://root:123456@10.0.150.170:27017/techchallenge_order_service?retryWrites=true&w=majority&authSource=admin"
-      },
-      {
-        name  = "SPRING_JPA_HIBERNATE_DDL_AUTO"
-        value = "none"
-      },
-      {
-        name  = "SPRING_PROFILES_ACTIVE"
-        value = "prod"
+        value = "mongodb://root:123456@localhost:27017/techchallenge_order_service?retryWrites=true&w=majority&authSource=admin"
       }
     ]
-  }])
+    logConfiguration = {
+      logDriver = "awslogs",
+      options = {
+        "awslogs-group"         = aws_cloudwatch_log_group.order_logs.name,
+        "awslogs-region"        = "us-east-1",
+        "awslogs-stream-prefix" = "order-service"
+      }
+    }
+    },
+    # ----------------------------------------------
+    # 2. Contêiner do MongoDB (O Banco de Dados)
+    # ----------------------------------------------
+    {
+      name  = "mongodb"
+      image = "mongo:latest"
+      portMappings = [{
+        containerPort = 27017
+        hostPort      = 27017
+        protocol      = "tcp"
+      }]
+      essential = true
+      environment = [
+        { name = "MONGO_INITDB_ROOT_USERNAME", value = "root" },
+        { name = "MONGO_INITDB_ROOT_PASSWORD", value = "123456" },
+        { name = "MONGO_INITDB_DATABASE", value = "techchallenge_order_service" }
+      ]
+      logConfiguration = {
+        logDriver = "awslogs",
+        options = {
+          "awslogs-group"         = aws_cloudwatch_log_group.order_logs.name,
+          "awslogs-region"        = "us-east-1",
+          "awslogs-stream-prefix" = "mongodb"
+        }
+      }
+    }
+  ])
+
 
   tags = {
     Name = "order-service-task"
