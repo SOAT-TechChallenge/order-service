@@ -28,7 +28,7 @@ data "aws_subnets" "public" {
 
   filter {
     name   = "tag:Name"
-    values = ["techchallenge-vpc-Public-A", "techchallenge-vpc-Public-B"]
+   values = ["techchallenge-vpc-public-us-east-1a", "techchallenge-vpc-public-us-east-1b"]
   }
 }
 
@@ -40,7 +40,7 @@ data "aws_subnets" "private" {
 
   filter {
     name   = "tag:Name"
-    values = ["techchallenge-vpc-Private-A", "techchallenge-vpc-Private-B"]
+    values = ["techchallenge-vpc-private-us-east-1a", "techchallenge-vpc-private-us-east-1b"]
   }
 }
 
@@ -87,9 +87,16 @@ resource "aws_security_group" "ecs_sg" {
   }
 
   egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] 
+  }
+
+  egress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
@@ -164,7 +171,7 @@ resource "aws_ecs_task_definition" "order_task" {
 
   container_definitions = jsonencode([{
     name  = "order-service"
-    image = "leynerbueno/order-service:latest"
+    image = "breno091073/order-service:latest"
     portMappings = [{
       containerPort = 8080
       hostPort      = 8080
@@ -180,6 +187,10 @@ resource "aws_ecs_task_definition" "order_task" {
       {
         name  = "SPRING_DATA_MONGODB_URI"
         value = "mongodb://root:123456@localhost:27017/techchallenge_order_service?retryWrites=true&w=majority&authSource=admin"
+      },
+      {
+        name  = "EXTERNAL_SERVICES_REGISTRATION_URL"
+        value = "http://registration-service-alb-1122775453.us-east-1.elb.amazonaws.com"
       }
     ]
     logConfiguration = {
