@@ -72,9 +72,8 @@ public class Order {
         if (this.statusHistory == null || this.statusHistory.isEmpty()) {
             throw new IllegalStateException("O pedido não possui histórico de status.");
         }
-        return this.statusHistory.stream()
-                .max(Comparator.comparing(OrderStatusHistory::getDate))
-                .get().getStatus();
+        
+        return this.statusHistory.get(this.statusHistory.size() - 1).getStatus();
     }
 
     public void setPaymentId(String paymentId) {

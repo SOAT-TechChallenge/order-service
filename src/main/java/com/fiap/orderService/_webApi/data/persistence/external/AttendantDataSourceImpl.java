@@ -1,5 +1,6 @@
 package com.fiap.orderService._webApi.data.persistence.external;
 
+import java.util.Objects;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -29,16 +30,15 @@ public class AttendantDataSourceImpl implements AttendantDataSource {
         String url = registrationUrl + "/products/find-by-id/{id}";
 
         try {
-            //TODO DESCOMENTAR
-            // AttendantDTO attendant = restTemplate.getForObject(url, AttendantDTO.class, id);
-            // return Objects.requireNonNull(attendant, "Atendente não encontrado.");
+            AttendantDTO attendant = restTemplate.getForObject(url, AttendantDTO.class, id);
+            return Objects.requireNonNull(attendant, "Atendente não encontrado.");
 
-            return new AttendantDTO(
-                    id,
-                    "Atendente de Teste",
-                    "teste@teste.com",
-                    "46765845801"
-            );
+            // return new AttendantDTO(
+            //         id,
+            //         "Atendente de Teste",
+            //         "teste@teste.com",
+            //         "46765845801"
+            // );
 
         } catch (HttpClientErrorException.NotFound e) {
             throw new EntityNotFoundException("Atendnete com ID " + id + " não encontrado.");

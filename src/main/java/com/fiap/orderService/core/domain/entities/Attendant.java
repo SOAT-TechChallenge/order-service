@@ -47,4 +47,12 @@ public class Attendant {
         return this.cpf;
     }
 
+    public    String getFormattedNumber() {
+        return this.cpf.getFormattedNumber();
+    }
+
+    String getUnformattedNumber() {
+        return this.cpf.getUnformattedNumber();
+    }
+
 }
